@@ -1,35 +1,40 @@
-let readyPlayerCount = 0
+let readyPlayerCount = 0;
 
 function socketListen(io) {
-  io.on("connection", (socket) => {
+    io.on("connection", (socket) => {
+      let room
     console.log("A user is connected", socket.id);
 
     // Listener for starting the game & assigning the referee
     socket.on("ready", () => {
-      console.log("Player ready", socket.id);
+       room = "room" + Math.floor(readyPlayerCount / 2);
+      socket.join(room);
+
+      console.log("Player ready", socket.id, room);
 
       readyPlayerCount++;
 
       if (readyPlayerCount % 2 === 0) {
-        io.emit("startGame", socket.id);
+        io.in(room).emit("startGame", socket.id);
       }
     });
 
     // Listener for paddle movement
     socket.on("paddleMove", (paddleData) => {
-      socket.broadcast.emit("paddleMove", paddleData);
+      socket.to(room).emit("paddleMove", paddleData);
     });
 
     // Listener for ball move event
     socket.on("ballMove", (ballData) => {
-      socket.broadcast.emit("ballMove", ballData);
+      socket.to(room).emit("ballMove", ballData);
     });
 
     // Disconnect Event
     socket.on("disconnect", (reason) => {
-      console.log(`Client ${socket.id} disconnected : ${reason}`);
+        console.log(`Client ${socket.id} disconnected : ${reason}`);
+        socket.leave(room)
     });
   });
 }
 
-export default socketListen
+export default socketListen;
