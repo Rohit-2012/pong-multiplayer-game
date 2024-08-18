@@ -25,7 +25,7 @@ io.on("connection", (socket) => {
 
         readyPlayerCount++
 
-        if (readyPlayerCount === 2) {
+        if (readyPlayerCount % 2 === 0) {
             io.emit('startGame', socket.id)
         }
     })
@@ -38,5 +38,10 @@ io.on("connection", (socket) => {
     // Listener for ball move event
     socket.on('ballMove', (ballData) => { 
         socket.broadcast.emit('ballMove', ballData)
+    })
+
+    // Disconnect Event
+    socket.on('disconnect', (reason) => {
+        console.log(`Client ${socket.id} disconnected : ${reason}`)
     })
 });
